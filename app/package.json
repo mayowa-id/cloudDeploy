@@ -1,0 +1,23 @@
+{
+  "name": "clouddeploy",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/index.js",
+    "test": "npm run build && node --test"
+  },
+  "dependencies": {
+    "@prometheus-io/client": "^0.16.1",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "~5.9.3"
+  }
+}
