@@ -221,3 +221,21 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# CloudDeploy
+node_modules/
+coverage/
+.env.*
+!.env.example
+*.tsbuildinfo
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+!*.example.tfvars
+tfplan
+*.tfplan
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
