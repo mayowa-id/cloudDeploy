@@ -1,60 +1,25 @@
 # CloudDeploy
 
-CloudDeploy is a cloud engineering project that takes a small TypeScript API from local development to a Kubernetes release on AWS. The deployment path uses Terraform, GitHub Actions, GitHub Container Registry, and AWS Systems Manager.
+CloudDeploy is a portfolio project for deploying a TypeScript API to Kubernetes. The local workflow uses Docker and kind. The planned AWS workflow uses Terraform, K3s on EC2, GitHub Actions, and Systems Manager.
 
-## Implementation milestones
+## Quick start
 
-- [x] Scaffold the repository.
-- [x] Build and test the Express API.
-- [ ] Build and smoke-test the production Docker image.
-- [ ] Deploy to kind and verify probes, recovery, and scaling.
-- [ ] Build and validate Terraform for AWS EC2 and K3s.
-- [ ] Set up pull request validation and digest-pinned releases.
-- [ ] Verify a rolling deployment and recovery to the last successful release.
-- [ ] Configure CloudWatch and document load tests, demo results, and cleanup.
-
-## Repository layout
-
-| Path | Purpose |
-| --- | --- |
-| `app/` | Express API, application tests, and Docker build |
-| `infrastructure/terraform/` | AWS resources and K3s bootstrap |
-| `kubernetes/` | Workload, configuration, service, and autoscaling manifests |
-| `scripts/` | Deployment, recovery, smoke tests, and load tests |
-| `.github/workflows/` | Pull request validation, application releases, and infrastructure checks |
-| `docs/` | Architecture, operations runbook, and demo results |
-
-Local validation comes first. AWS provisioning is a separate, explicitly approved operation.
-
-## Run the API locally
-
-With Node.js 22 or newer and npm installed, run these commands from the repository root:
+With Docker and Docker Compose, run from the repository root:
 
 ```sh
-cd app
-npm ci
-npm test
-npm start
+docker compose up --build --wait
+curl --fail http://127.0.0.1:3000/health
+docker compose down
 ```
 
-If you are starting the API without running the tests, run `npm run build` before `npm start`.
+## Guides
 
-| Endpoint | What it returns |
-| --- | --- |
-| `GET /` | Application name and description |
-| `GET /health` | Liveness status |
-| `GET /ready` | HTTP 200 while ready or 503 while draining |
-| `GET /version` | Release version, Git commit, environment, and instance |
-| `GET /metrics` | Prometheus HTTP request counts and duration histograms |
+- [Local development](docs/local-development.md) covers Node.js, Docker, API endpoints, and configuration.
+- [Local Kubernetes](docs/local-kubernetes.md) covers kind, probes, pod recovery, scaling, and Metrics Server.
+- [AWS Terraform](docs/aws-terraform.md) covers the network foundation and AWS setup.
 
-Try `curl http://localhost:3000/version` or `Invoke-RestMethod http://localhost:3000/version` in PowerShell.
+## Project status
 
-| Environment variable | Default |
-| --- | --- |
-| `PORT` | `3000` |
-| `APP_VERSION` | `1.0.0` |
-| `APP_COMMIT` | `local` |
-| `APP_ENV` | `local` |
-| `INSTANCE_NAME` | Hostname |
-
-Each HTTP response carries an `X-Request-ID` that matches its JSON request log. Metrics use the registered route or `unmatched` as their route label, keeping the number of time series bounded when clients send arbitrary paths. On SIGTERM or SIGINT, the server marks itself unready, stops accepting connections, and allows active requests up to 10 seconds to finish.
+- **Verified locally** — Express API and tests, non-root Docker image, and deployment to kind with pod recovery, manual scaling, and live HPA metrics.
+- **AWS infrastructure** — Terraform for EC2 and K3s passes local validation. A sandbox plan and approved apply are pending.
+- **Planned** — GitHub Actions validation and digest-pinned releases, automated rollback, CloudWatch monitoring, load tests, and cleanup.
