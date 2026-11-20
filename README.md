@@ -1,6 +1,10 @@
 # CloudDeploy
 
+<<<<<<< Updated upstream
 CloudDeploy is a cloud engineering project that takes a small TypeScript API from local development to a Kubernetes release on AWS. The deployment path uses Terraform, GitHub Actions, GitHub Container Registry, and AWS Systems Manager.
+=======
+CloudDeploy is a portfolio project for deploying a TypeScript API to Kubernetes. It uses Docker and kind locally, with Terraform configuration for K3s on AWS EC2 and Systems Manager access.
+>>>>>>> Stashed changes
 
 ## Implementation milestones
 
@@ -39,6 +43,7 @@ npm start
 
 If you are starting the API without running the tests, run `npm run build` before `npm start`.
 
+<<<<<<< Updated upstream
 | Endpoint | What it returns |
 | --- | --- |
 | `GET /` | Application name and description |
@@ -58,3 +63,8 @@ Try `curl http://localhost:3000/version` or `Invoke-RestMethod http://localhost:
 | `INSTANCE_NAME` | Hostname |
 
 Each HTTP response carries an `X-Request-ID` that matches its JSON request log. Metrics use the registered route or `unmatched` as their route label, keeping the number of time series bounded when clients send arbitrary paths. On SIGTERM or SIGINT, the server marks itself unready, stops accepting connections, and allows active requests up to 10 seconds to finish.
+=======
+- [Local development](docs/local-development.md) covers Node.js, Docker, API endpoints, and configuration.
+- [Local Kubernetes](docs/local-kubernetes.md) covers kind, probes, pod recovery, scaling, and Metrics Server.
+- [AWS Terraform](docs/aws-terraform.md) covers the network foundation and AWS setup.
+>>>>>>> Stashed changes
