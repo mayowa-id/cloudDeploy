@@ -22,3 +22,6 @@ aws s3api get-object --bucket "$bucket" --key "releases/$release/manifests.yaml"
 printf 'Applying release %s\n' "$release"
 k3s kubectl apply -f "$manifest"
 k3s kubectl -n clouddeploy rollout status deployment/clouddeploy-api --timeout=150s
+
+service_ip=$(k3s kubectl -n clouddeploy get service clouddeploy-api -o jsonpath='{.spec.clusterIP}')
+/usr/local/bin/clouddeploy-smoke-test "http://$service_ip:3000" "$release"

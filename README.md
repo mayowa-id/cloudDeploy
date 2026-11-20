@@ -1,6 +1,6 @@
 # CloudDeploy
 
-CloudDeploy is a portfolio project for deploying a TypeScript API to Kubernetes. The local workflow uses Docker and kind. The planned AWS workflow uses Terraform, K3s on EC2, GitHub Actions, and Systems Manager.
+CloudDeploy is a portfolio project for deploying a TypeScript API to Kubernetes. The local workflow uses Docker and kind. Terraform defines the AWS EC2 and K3s infrastructure, and GitHub Actions runs checks and releases.
 
 ## Quick start
 
@@ -17,9 +17,4 @@ docker compose down
 - [Local development](docs/local-development.md) covers Node.js, Docker, API endpoints, and configuration.
 - [Local Kubernetes](docs/local-kubernetes.md) covers kind, probes, pod recovery, scaling, and Metrics Server.
 - [AWS Terraform](docs/aws-terraform.md) covers the network foundation and AWS setup.
-
-## Project status
-
-- **Verified locally** — Express API and tests, non-root Docker image, and deployment to kind with pod recovery, manual scaling, and live HPA metrics.
-- **AWS infrastructure** — Terraform for EC2 and K3s passes local validation. A sandbox plan and approved apply are pending.
-- **Planned** — GitHub Actions validation and digest-pinned releases, automated rollback, CloudWatch monitoring, load tests, and cleanup.
+- [CI and releases](docs/ci-cd.md) covers pull request checks, GHCR publishing, and AWS deployment.

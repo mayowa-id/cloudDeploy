@@ -1,0 +1,78 @@
+name: Release CloudDeploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clouddeploy-main-release
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    if: vars.CLOUDDEPLOY_PUBLISH_ENABLED == 'true'
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Publish the release image
+        id: image
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          metadata="$RUNNER_TEMP/image-metadata.json"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null' EXIT
+          docker buildx build --platform linux/amd64 --push \
+            --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --tag "$image:$GITHUB_SHA" --metadata-file "$metadata" ./app
+          digest=$(jq -er '."containerimage.digest" | select(test("^sha256:[a-f0-9]{64}$"))' "$metadata")
+          printf 'image=%s@%s\n' "$image" "$digest" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    if: vars.CLOUDDEPLOY_AWS_DEPLOY_ENABLED == 'true'
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.CLOUDDEPLOY_AWS_ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.CLOUDDEPLOY_AWS_REGION }}
+      ARTIFACT_BUCKET: ${{ vars.CLOUDDEPLOY_ARTIFACT_BUCKET }}
+      INSTANCE_ID: ${{ vars.CLOUDDEPLOY_INSTANCE_ID }}
+      SSM_DOCUMENT: ${{ vars.CLOUDDEPLOY_SSM_DOCUMENT }}
+      LOG_GROUP: ${{ vars.CLOUDDEPLOY_LOG_GROUP }}
+      RELEASE_IMAGE: ${{ needs.publish.outputs.image }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Render the release
+        run: bash scripts/render-release.sh "$RELEASE_IMAGE" "$GITHUB_SHA" > "$RUNNER_TEMP/manifests.yaml"
+      - name: Authenticate to AWS using OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.CLOUDDEPLOY_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+          role-session-name: clouddeploy-${{ github.run_id }}
+      - name: Upload the release and verify SSM deployment
+        run: bash scripts/ssm-release.sh "$RUNNER_TEMP/manifests.yaml" "$GITHUB_SHA"

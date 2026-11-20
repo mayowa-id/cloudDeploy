@@ -53,7 +53,7 @@ If bootstrap fails, inspect `/var/log/cloud-init-output.log` and `sudo journalct
 
 The deployment role can upload `releases/<40-character Git SHA>/manifests.yaml` to the artifact bucket and invoke only the CloudDeploy SSM document on this instance. Publish a manifest bundle with the Namespace first and a digest-pinned image. Pass the same SHA as the document's `ReleaseId` parameter. Enable CloudWatch output on the invocation and set the log group to Terraform's `deployment_log_group` output.
 
-Bootstrap installs the deployment and manual Deployment rollback commands. The deployment command waits for rollout success. Commit verification and automatic restoration of the last successful manifest bundle are part of the release recovery phase.
+Bootstrap installs the deployment and manual Deployment rollback commands. The deployment command waits for the rollout and verifies the health, readiness, and commit SHA through the local Service. Automatic restoration of the last successful manifest bundle is part of the release recovery phase.
 
 ## Cleanup
 

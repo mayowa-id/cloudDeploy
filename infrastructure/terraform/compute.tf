@@ -19,6 +19,7 @@ resource "aws_instance" "k3s" {
     bootstrap = indent(6, replace(file("${path.module}/bootstrap.sh"), "\r\n", "\n"))
     deploy    = indent(6, replace(file("${path.module}/../../scripts/deploy.sh"), "\r\n", "\n"))
     rollback  = indent(6, replace(file("${path.module}/../../scripts/rollback.sh"), "\r\n", "\n"))
+    smoke     = indent(6, replace(file("${path.module}/../../scripts/smoke-test.sh"), "\r\n", "\n"))
     version   = var.k3s_version
   })
 

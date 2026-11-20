@@ -44,7 +44,7 @@ run "sandbox_foundation" {
     condition = (
       startswith(aws_instance.k3s.user_data, "#cloud-config\n") &&
       length(aws_instance.k3s.user_data) < 16384 &&
-      length(yamldecode(aws_instance.k3s.user_data).write_files) == 5 &&
+      length(yamldecode(aws_instance.k3s.user_data).write_files) == 6 &&
       yamldecode(aws_instance.k3s.user_data).runcmd[0][1] == var.k3s_version
     )
     error_message = "EC2 user data must fit the size limit and include the pinned K3s bootstrap and its files."

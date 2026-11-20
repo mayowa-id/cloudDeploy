@@ -37,6 +37,11 @@ write_files:
     permissions: '0700'
     content: |
       ${rollback}
+  - path: /usr/local/bin/clouddeploy-smoke-test
+    owner: root:root
+    permissions: '0700'
+    content: |
+      ${smoke}
 
 runcmd:
   - [ /usr/local/bin/clouddeploy-bootstrap, "${version}" ]
