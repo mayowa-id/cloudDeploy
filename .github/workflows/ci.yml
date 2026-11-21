@@ -1,0 +1,34 @@
+name: Application CI
+
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: App checks and kind smoke test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Lint, type-check, test, and audit
+        working-directory: app
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+          npm test
+          npm audit --audit-level=high
+      - name: Build the container
+        run: docker build -t clouddeploy:local ./app
+      - name: Check manifests and smoke-test in kind
+        run: bash scripts/ci-kind.sh
