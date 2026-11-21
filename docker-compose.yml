@@ -1,0 +1,7 @@
+services:
+  api:
+    build: ./app
+    image: clouddeploy:local
+    ports:
+      - "127.0.0.1:${CLOUDDEPLOY_HOST_PORT:-3000}:3000"
+    stop_grace_period: 15s
