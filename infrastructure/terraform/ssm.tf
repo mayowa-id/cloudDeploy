@@ -20,7 +20,7 @@ resource "aws_ssm_document" "deploy" {
       name         = "DeployRelease"
       precondition = { StringEquals = ["platformType", "Linux"] }
       inputs = {
-        timeoutSeconds = "600"
+        timeoutSeconds = "900"
         runCommand     = ["exec /usr/local/bin/clouddeploy-deploy \"$SSM_ReleaseId\""]
       }
     }]

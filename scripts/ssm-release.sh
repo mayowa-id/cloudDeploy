@@ -18,7 +18,7 @@ command_id=$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$INSTAN
   --cloud-watch-output-config "$logging" --query 'Command.CommandId' --output text)
 printf 'Waiting for SSM command %s. CloudWatch log group: %s\n' "$command_id" "$LOG_GROUP"
 
-for attempt in {1..150}; do
+for attempt in {1..210}; do
   if status=$(aws ssm get-command-invocation --region "$AWS_REGION" --command-id "$command_id" \
     --instance-id "$INSTANCE_ID" --query Status --output text 2>&1); then
     case "$status" in
