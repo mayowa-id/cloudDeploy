@@ -11,7 +11,7 @@ resource "aws_instance" "k3s" {
   iam_instance_profile        = aws_iam_instance_profile.k3s.name
   user_data_replace_on_change = true
 
-  user_data = templatefile("${path.module}/cloud-init.yaml", {
+  user_data = replace(templatefile("${path.module}/cloud-init.yaml", {
     settings = indent(6, jsonencode({
       bucket = aws_s3_bucket.artifacts.bucket
       region = var.aws_region
@@ -21,7 +21,7 @@ resource "aws_instance" "k3s" {
     rollback  = indent(6, replace(file("${path.module}/../../scripts/rollback.sh"), "\r\n", "\n"))
     smoke     = indent(6, replace(file("${path.module}/../../scripts/smoke-test.sh"), "\r\n", "\n"))
     version   = var.k3s_version
-  })
+  }), "\r\n", "\n")
 
   metadata_options {
     http_endpoint               = "enabled"
