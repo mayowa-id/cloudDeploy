@@ -26,3 +26,24 @@ resource "aws_ssm_document" "deploy" {
     }]
   })
 }
+
+resource "aws_ssm_document" "rollback" {
+  name            = "CloudDeploy-RollbackRelease"
+  document_type   = "Command"
+  document_format = "JSON"
+  target_type     = "/AWS::EC2::Instance"
+
+  content = jsonencode({
+    schemaVersion = "2.2"
+    description   = "Restore the previous verified CloudDeploy release."
+    mainSteps = [{
+      action       = "aws:runShellScript"
+      name         = "RollbackRelease"
+      precondition = { StringEquals = ["platformType", "Linux"] }
+      inputs = {
+        timeoutSeconds = "900"
+        runCommand     = ["exec /usr/local/bin/clouddeploy-rollback"]
+      }
+    }]
+  })
+}
