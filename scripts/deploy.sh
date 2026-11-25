@@ -12,11 +12,11 @@ if [[ $# != 1 ]] || { [[ "$release" != --rollback ]] && ! is_sha "$release"; }; 
 fi
 
 umask 077
-exec 9>/run/clouddeploy-deployment.lock
+exec 9>"${CLOUDDEPLOY_LOCK_FILE:-/run/clouddeploy-deployment.lock}"
 flock -n 9 || { echo 'A CloudDeploy deployment or rollback is already running.' >&2; exit 1; }
 timeout 180 cloud-init status --wait
 
-state_dir=/var/lib/clouddeploy/releases
+state_dir=${CLOUDDEPLOY_STATE_DIR:-/var/lib/clouddeploy/releases}
 mkdir -p -- "$state_dir"
 current=
 previous=
@@ -44,7 +44,7 @@ if [[ "$release" == --rollback ]]; then
   fi
   release=$previous
 elif [[ "$release" != "$current" && "$release" != "$previous" ]]; then
-  config=/etc/clouddeploy/config.json
+  config=${CLOUDDEPLOY_CONFIG:-/etc/clouddeploy/config.json}
   bucket=$(jq -er '.bucket' "$config")
   region=$(jq -er '.region' "$config")
   timeout 45 aws s3api get-object --bucket "$bucket" --key "releases/$release/manifests.yaml" \
@@ -60,7 +60,7 @@ apply_and_verify() {
   timeout 165 k3s kubectl -n clouddeploy rollout status deployment/clouddeploy-api --timeout=150s || return 1
   service_ip=$(timeout 15 k3s kubectl -n clouddeploy get service clouddeploy-api -o jsonpath='{.spec.clusterIP}') || return 1
   [[ -n "$service_ip" && "$service_ip" != None ]] || return 1
-  timeout 80 /usr/local/bin/clouddeploy-smoke-test "http://$service_ip:3000" "$target"
+  timeout 80 "${CLOUDDEPLOY_SMOKE_TEST:-/usr/local/bin/clouddeploy-smoke-test}" "http://$service_ip:3000" "$target"
 }
 
 # Prepare the new release record before making cluster changes.

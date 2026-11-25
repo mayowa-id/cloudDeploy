@@ -2,7 +2,7 @@
 
 ## Pull requests
 
-Application CI runs npm lint, type checks, tests, and a dependency audit. It builds the Docker image, validates the Kubernetes manifests against a temporary kind cluster, and checks the running API. Terraform changes run formatting, validation, and mocked security assertions. Configure branch protection on `main` to require the application check. The Terraform check runs only when relevant files change.
+Application CI runs npm lint, type checks, tests, and a dependency audit. It builds the Docker image, validates the Kubernetes manifests against a temporary kind cluster, and exercises release recovery. It deploys a healthy release, forces the next rollout to fail readiness, and verifies that the API reports the original commit after recovery. Terraform changes run formatting, validation, and mocked security assertions. Configure branch protection on `main` to require the application check. The Terraform check runs only when relevant files change.
 
 ## Enable releases
 
