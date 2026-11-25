@@ -95,7 +95,7 @@ resource "aws_iam_role_policy" "github" {
       {
         Effect   = "Allow"
         Action   = ["ssm:SendCommand"]
-        Resource = [aws_ssm_document.deploy.arn, aws_instance.k3s.arn]
+        Resource = [aws_ssm_document.deploy.arn, aws_ssm_document.rollback.arn, aws_instance.k3s.arn]
       },
       {
         Effect   = "Allow"

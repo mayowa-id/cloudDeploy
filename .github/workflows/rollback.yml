@@ -1,0 +1,38 @@
+name: Roll back CloudDeploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    if: github.ref == 'refs/heads/main' && vars.CLOUDDEPLOY_AWS_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    concurrency:
+      group: clouddeploy-main-release
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.CLOUDDEPLOY_AWS_ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.CLOUDDEPLOY_AWS_REGION }}
+      INSTANCE_ID: ${{ vars.CLOUDDEPLOY_INSTANCE_ID }}
+      SSM_DOCUMENT: ${{ vars.CLOUDDEPLOY_ROLLBACK_DOCUMENT }}
+      LOG_GROUP: ${{ vars.CLOUDDEPLOY_LOG_GROUP }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Authenticate to AWS using OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.CLOUDDEPLOY_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+          role-session-name: clouddeploy-${{ github.run_id }}
+      - name: Restore and verify the previous release
+        run: bash scripts/ssm-command.sh

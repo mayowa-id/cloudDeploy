@@ -21,3 +21,7 @@ output "deployment_document" {
 output "deployment_log_group" {
   value = aws_cloudwatch_log_group.deployments.name
 }
+
+output "rollback_document" {
+  value = aws_ssm_document.rollback.name
+}

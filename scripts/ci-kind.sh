@@ -99,3 +99,14 @@ actual=$(k -n clouddeploy get deployment clouddeploy-api \
   -o 'jsonpath={.spec.template.spec.containers[0].env[?(@.name=="APP_COMMIT")].value}')
 [[ "$actual" == "$good" ]]
 "$CLOUDDEPLOY_SMOKE_TEST" '' "$good"
+
+next=$(printf 'c%.0s' {1..40})
+mkdir "$work/$next"
+k patch --local -f kubernetes/deployment.yaml --type strategic -o yaml \
+  --patch "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"api\",\"env\":[{\"name\":\"APP_COMMIT\",\"value\":\"$next\"}]}]}}}}" \
+  > "$work/$next/manifests.yaml"
+bash scripts/deploy.sh "$next"
+diff -u <(printf '%s\n%s\n' "$next" "$good") "$CLOUDDEPLOY_STATE_DIR/verified"
+bash scripts/deploy.sh --rollback
+diff -u <(printf '%s\n%s\n' "$good" "$next") "$CLOUDDEPLOY_STATE_DIR/verified"
+"$CLOUDDEPLOY_SMOKE_TEST" '' "$good"
